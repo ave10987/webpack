@@ -2,6 +2,8 @@ const webpack = require('webpack');
 const path = require('path');
 const fs = require('fs');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const utils = require('./utils')
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const nodeModules = {};
 fs.readdirSync('node_modules')
@@ -12,42 +14,43 @@ fs.readdirSync('node_modules')
 		nodeModules[mod] = 'commonjs ' + mod;
 	});
 
-const common = {
-	plugins: [
-	    new HtmlWebpackPlugin({
-	      	filename: 'index.html',
-	      	template: 'index.html',
-	      	chunks: ['frontend-entry'],
-	      	excludeChunks: ['backend-entry'],
-	      	inject: true,
-	      	hash: true
-	    })
-  	]
-};
 
-const frontend = {
+module.exports = {
 	entry: {
-		'frontend-entry': './src/index.js'
+		'frontend-entry': [ './server/dev-client.js', './src/js/index.js']
 	},
 	output: {
 		path: path.join(__dirname, 'dist'),
 		filename: 'frontend-output.js'
-	}
-};
-
-const backend = {
-	entry: {
-		'backend-entry': './server/main.js'
 	},
-	output: {
-		path: path.join(__dirname, 'dist'),
-		filename: 'backend-output.js'
+	devtool: '#inline-source-map',
+	module: {
+		rules: [
+			{
+		        test: /\.js$/,
+		        loader: 'babel',
+		        include: ['src']
+		    },
+		    {
+	            test: /\.css$/,
+	            use: ExtractTextPlugin.extract({
+	                fallback: 'style-loader',
+	                use: 'css-loader'
+	            })
+	        }
+		]
 	},
-	target: 'node',
-	externals: nodeModules
+	plugins: [
+		new webpack.ProvidePlugin({
+			$: 'jquery'
+		}),
+		new webpack.HotModuleReplacementPlugin(),
+		new webpack.NoEmitOnErrorsPlugin(),
+	    new HtmlWebpackPlugin({
+	      	filename: 'index.html',
+	      	template: 'index.html',
+	      	inject: true
+	    }),
+	    new ExtractTextPlugin('bundle.css')
+  	]
 };
-
-module.exports = [
-	Object.assign({}, common, frontend),
-	Object.assign({}, common, backend)
-];
