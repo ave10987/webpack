@@ -2,7 +2,6 @@ const webpack = require('webpack');
 const path = require('path');
 const fs = require('fs');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const utils = require('./utils')
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const nodeModules = {};
